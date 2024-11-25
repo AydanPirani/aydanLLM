@@ -1,5 +1,7 @@
 import re
 
+END_TOKEN = "<|endoftext|>"
+UNKNOWN_TOKEN = "<|unk|>"
 
 def build_vocab(filepath):
     with open(filepath, "r", encoding="utf-8") as f:
@@ -9,8 +11,8 @@ def build_vocab(filepath):
     preprocessed = [item.strip() for item in preprocessed if item.strip()]
 
     vocab_tokens = sorted(set(preprocessed))
+    vocab_tokens.extend([END_TOKEN, UNKNOWN_TOKEN])
     vocab = {token:idx for idx, token in enumerate(vocab_tokens)}
-
     return vocab
 
 class SimpleTokenizer():
@@ -21,6 +23,7 @@ class SimpleTokenizer():
     def encode(self, text):
         preprocessed = re.split(r'([,.?_!"()\']|--|\s)' , text)
         preprocessed = [item.strip() for item in preprocessed if item.strip()]
+        preprocessed = [item if item in self.str_to_idx else UNKNOWN_TOKEN for item in preprocessed]
         ids = [self.str_to_idx[s] for s in preprocessed]
         return ids
     
@@ -33,9 +36,10 @@ def main():
     vocab = build_vocab("data/the_verdict.txt")
 
     tokenizer = SimpleTokenizer(vocab)
-    text = """
-    "It's the last he painted, you know," Mrs. Gisburn said with pardonable pride. "The last but one," she corrected herself--"but the other doesn't count, because he destroyed it."
-    """
+    
+    text1 = "Hello, do you like tea?"
+    text2 = "In the sunlit terraces of the palace."
+    text = f" {END_TOKEN} ".join((text1, text2))
 
     ids = tokenizer.encode(text)
     print(ids)
