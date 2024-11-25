@@ -1,6 +1,18 @@
 import re
 from tokens import END_TOKEN, UNKNOWN_TOKEN
 
+def build_vocab(filepath):
+    with open(filepath, "r", encoding="utf-8") as f:
+        raw_text = f.read()
+
+    preprocessed = re.split(r'([,.?_!"()\']|--|\s)' , raw_text)
+    preprocessed = [item.strip() for item in preprocessed if item.strip()]
+
+    vocab_tokens = sorted(set(preprocessed))
+    vocab_tokens.extend([END_TOKEN, UNKNOWN_TOKEN])
+    vocab = {token:idx for idx, token in enumerate(vocab_tokens)}
+    return vocab
+
 class SimpleTokenizer():
     def __init__(self, vocab):
         self.str_to_idx = vocab
