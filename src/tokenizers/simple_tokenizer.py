@@ -1,5 +1,5 @@
 import re
-from tokens import END_TOKEN, UNKNOWN_TOKEN
+from tokenizers.tokens import END_TOKEN, UNKNOWN_TOKEN
 
 def build_vocab(filepath):
     with open(filepath, "r", encoding="utf-8") as f:

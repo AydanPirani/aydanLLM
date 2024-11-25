@@ -1,5 +1,5 @@
 import tiktoken
-from tokens import END_TOKEN
+from tokenizers.tokens import END_TOKEN
 
 class BytePairTokenizer:
     def __init__(self):
