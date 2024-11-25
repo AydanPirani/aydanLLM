@@ -1,7 +1,7 @@
 import re
-
-END_TOKEN = "<|endoftext|>"
-UNKNOWN_TOKEN = "<|unk|>"
+from simple_tokenizer import SimpleTokenizer
+from bytepair_tokenizer import BytePairTokenizer
+from tokens import END_TOKEN, UNKNOWN_TOKEN
 
 def build_vocab(filepath):
     with open(filepath, "r", encoding="utf-8") as f:
@@ -15,27 +15,10 @@ def build_vocab(filepath):
     vocab = {token:idx for idx, token in enumerate(vocab_tokens)}
     return vocab
 
-class SimpleTokenizer():
-    def __init__(self, vocab):
-        self.str_to_idx = vocab
-        self.idx_to_str = {i:s for s, i in vocab.items()}
-
-    def encode(self, text):
-        preprocessed = re.split(r'([,.?_!"()\']|--|\s)' , text)
-        preprocessed = [item.strip() for item in preprocessed if item.strip()]
-        preprocessed = [item if item in self.str_to_idx else UNKNOWN_TOKEN for item in preprocessed]
-        ids = [self.str_to_idx[s] for s in preprocessed]
-        return ids
-    
-    def decode(self, ids):
-        text = " ".join([self.idx_to_str[id] for id in ids])
-        text = re.sub(r'\s+([,.?!"()\'])', r'\1', text)
-        return text
-
 def main():
     vocab = build_vocab("data/the_verdict.txt")
 
-    tokenizer = SimpleTokenizer(vocab)
+    tokenizer = BytePairTokenizer()
     
     text1 = "Hello, do you like tea?"
     text2 = "In the sunlit terraces of the palace."
