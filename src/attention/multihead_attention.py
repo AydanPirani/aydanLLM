@@ -14,7 +14,7 @@ class MultiHeadAttentionWrapper(nn.Module):
 
 
 class MultiHeadAttention(nn.Module):
-    def __init__(self, d_in, d_out, context_length, dropout, num_heads, kqv_bias=False):
+    def __init__(self, d_in, d_out, context_length, dropout, num_heads, qkv_bias=False):
         super().__init__();
         
         assert(d_out % num_heads == 0)
@@ -23,9 +23,9 @@ class MultiHeadAttention(nn.Module):
         self.num_heads = num_heads
         self.head_dim = d_out // num_heads
 
-        self.W_query = nn.Linear(d_in, d_out, bias=kqv_bias)
-        self.W_key = nn.Linear(d_in, d_out, bias=kqv_bias)
-        self.W_value = nn.Linear(d_in, d_out, bias=kqv_bias)
+        self.W_query = nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.W_key = nn.Linear(d_in, d_out, bias=qkv_bias)
+        self.W_value = nn.Linear(d_in, d_out, bias=qkv_bias)
         
         self.out_proj = nn.Linear(d_out, d_out)
         self.dropout = nn.Dropout(dropout)

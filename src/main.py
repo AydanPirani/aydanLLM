@@ -1,6 +1,9 @@
 from attention.multihead_attention import MultiHeadAttention
 from dataload.dataloader import create_dataloader
-import torch, torch.nn as nn
+from tokenizers.bytepair_tokenizer import BytePairTokenizer
+import torch
+from model import Model
+from config import GPT_CONFIG_124M
 
 OUTPUT_DIM=256
 VOCAB_SIZE=50257
@@ -8,6 +11,19 @@ VOCAB_SIZE=50257
 BATCH_SIZE=8
 CONTEXT_SIZE=4
 STRIDE=4
+
+def generate_text_simple(model, idx, max_new_tokens, context_size):
+    for _ in range(max_new_tokens):
+        idx_cond = idx[:, -context_size:]
+
+        with torch.no_grad():
+            logits = model(idx_cond)
+
+        logits = logits[:, -1, :]
+        idx_next = torch.argmax(logits, dim=-1, keepdim=True)
+        idx = torch.cat((idx, idx_next), dim=1)
+    return idx
+
 
 def main():
     # with open("data/the_verdict.txt", "r", encoding="utf-8") as f:
@@ -25,26 +41,38 @@ def main():
     # input_embeddings = token_embeddings + pos_embeddings
 
     # print(input_embeddings.shape)
-    inputs = torch.tensor([
-        [0.43, 0.15, 0.89],
-        [0.55, 0.87, 0.66],
-        [0.57, 0.85, 0.64], 
-        [0.22, 0.58, 0.33], 
-        [0.77, 0.25, 0.10], 
-        [0.05, 0.80, 0.55]
-    ])
+    tokenizer = BytePairTokenizer()
+    txt1 = "Every effort moves you"
+    txt2 = "Every day holds a"
 
-    d_in = 3
-    d_out = 2
+    batch = [
+        torch.tensor(tokenizer.encode(txt1)),
+        torch.tensor(tokenizer.encode(txt2))
+        ]
+    
+    batch = torch.stack(batch, dim=0)
+    
+    print(batch)
     torch.manual_seed(123)
+    model = Model(GPT_CONFIG_124M)
+    
+    model.eval()
 
-    batch = torch.stack((inputs, inputs))
-    context_length = batch.shape[1]
+    start_context = "Hello, I am"
+    encoded = tokenizer.encode(start_context)
+    encoded_tensor = torch.tensor(encoded).unsqueeze(0)
 
-    attention = MultiHeadAttention(d_in, d_out, context_length, 0.0, 2)
-    rv = attention(batch)
-    print(rv.shape)
-    print(rv)
+    out = generate_text_simple(
+        model=model, 
+        idx=encoded_tensor,
+        max_new_tokens=10,
+        context_size=GPT_CONFIG_124M.context_length
+    )
+
+    decoded = tokenizer.decode(out.squeeze(0).tolist())
+    print(f"Output: {decoded}")
+
+
 
 
 if __name__ == "__main__":
